@@ -8,9 +8,13 @@ use CodeIgniter\Router\RouteCollection;
 //$routes->get('/', 'Home::index');
 $routes->get('/', 'Home::informacion');
 //$routes->get('citas', 'Citas::index');
-//$routes->get('citas/new', 'Citas::new');
+$routes->get('citas/new', 'Citas::new');
 
-$routes->resource('citas', ['placeholder' => '(:num)', 'except'=>'show']);
+$routes->resource('citas', [
+    'placeholder' => '(:num)',
+    'only' => ['index', 'edit', 'update', 'delete'], // solo los métodos protegidos
+    'filter' => 'session'
+]);
 $routes->get('citas/horas-disponibles', 'Citas::horasDisponibles');
 $routes->get('citas/horas-disponibles', 'Citas::horasDisponibles');
 $routes->get('citas/cancelar-cita', 'Citas::formCancelarCita');
@@ -20,3 +24,4 @@ $routes->get('citas/dias-no-laborables', 'DiasNoLaborales::obtenerJSON');
 
 
 
+service('auth')->routes($routes);

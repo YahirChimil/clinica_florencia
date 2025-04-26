@@ -41,9 +41,26 @@
             <h1 class="text-white text-3xl font-bold tracking-wide">CLINICA FLORENCIA</h1>
 
             <!-- BOTÓN DE INICIO DE SESIÓN -->
-            <a href="<?= site_url('login') ?>" class="bg-[#09476e] hover:bg-[#0c3c4b] text-white px-4 py-2 rounded-md">
+            
+
+            <?php if (auth()->loggedIn()): ?>
+    <a href="<?= site_url('/logout') ?>" 
+       class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-all">
+        Cerrar sesión
+    </a>
+    <?php else: ?>
+        <a href="<?= site_url('/login') ?>" 
+            class="bg-[#09476e] hover:bg-[#0c3c4b] text-white px-4 py-2 rounded-md flex items-center gap-2 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M15 12H3m12 0l-4-4m4 4l-4 4m10-4a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 Inicio de sesión
             </a>
+        
+    <?php endif; ?>
+
+
         </div>
     </nav>
 
