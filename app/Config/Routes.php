@@ -12,9 +12,14 @@ $routes->get('citas/new', 'Citas::new');
 
 $routes->resource('citas', [
     'placeholder' => '(:num)',
-    'only' => ['index', 'edit', 'update', 'delete'], // solo los métodos protegidos
+    'except' => ['show', 'create'], // Excluye el método 'create'
     'filter' => 'session'
 ]);
+
+// Ruta para el método 'create' sin filtro de sesión
+$routes->get('citas/new', 'Citas::new');
+$routes->post('citas', 'Citas::create');
+
 $routes->get('citas/horas-disponibles', 'Citas::horasDisponibles');
 $routes->get('citas/horas-disponibles', 'Citas::horasDisponibles');
 $routes->get('citas/cancelar-cita', 'Citas::formCancelarCita');

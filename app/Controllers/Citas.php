@@ -123,7 +123,7 @@ class Citas extends BaseController
             $this->enviarWhatsapp($data['correo'], $mensaje);
         }
     
-        return redirect()->to(base_url('citas'))->with('success', 'Cita registrada correctamente y mensaje enviado.');
+        return redirect()->to(base_url('citas/new'))->with('success', 'Cita registrada correctamente y mensaje enviado.');
     }
 
 
