@@ -6,6 +6,7 @@ use App\Models\CitasModel;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Controllers\BaseController;
 use App\Models\DiasNoLaborablesModel;
+use App\Libraries\EmailService;
 
 class Citas extends BaseController
 {
@@ -110,14 +111,18 @@ class Citas extends BaseController
         // Detectar si es correo o teléfono
         if (filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) {
             // Enviar correo
-            $email = \Config\Services::email();
-            $email->setTo($data['correo']);
-            $email->setSubject('Confirmación de Cita - Clínica Florencia');
-            $email->setMessage(nl2br($mensaje)); // Para que respete saltos de línea en HTML
-    
-            if (!$email->send()) {
-                log_message('error', 'No se pudo enviar el correo: ' . $email->printDebugger(['headers']));
-            }
+            
+        $email = new EmailService();
+        $resultado = $email->enviarCorreo(
+      $data['correo'],
+     'Confirmación de Cita - Clínica Florencia',
+    nl2br($mensaje)
+);
+
+if ($resultado != 202) {
+    log_message('error', 'No se pudo enviar el correo con SendGrid: Código ' . $resultado);
+}
+
         } elseif (preg_match('/^\+?\d{10,15}$/', $data['correo'])) {
             // Enviar WhatsApp si es un número válido
             $this->enviarWhatsapp($data['correo'], $mensaje);
@@ -231,19 +236,14 @@ public function cancelar()
         return redirect()->back()->with('mensaje', 'Cita no encontrada.');
     }
 
-    // Verificar si tiene correo
     if (empty($cita['correo'])) {
         return redirect()->back()->with('mensaje', 'La cita no tiene un correo registrado. No se puede cancelar.');
     }
 
-    // Cancelar (eliminar)
+    // Cancelar (eliminar la cita)
     $citasModel->delete($id);
 
-    // Enviar correo al paciente y al host
-    $email = \Config\Services::email();
-    $email->setTo([$cita['correo'], 'xxkcronozsxx@gmail.com']);
-    $email->setSubject('Cita Cancelada - Clínica Florencia');
-
+    // Mensaje de cancelación
     $mensaje = "
         <h3>Confirmación de Cancelación</h3>
         <p><strong>Paciente:</strong> {$cita['nombre_paciente']}</p>
@@ -252,14 +252,36 @@ public function cancelar()
         <p>La cita ha sido cancelada exitosamente.</p>
     ";
 
-    $email->setMessage($mensaje);
-    $email->setMailType('html');
+    // Detectar si es email o teléfono
+    if (filter_var($cita['correo'], FILTER_VALIDATE_EMAIL)) {
+        // Es un correo
+        $emailService = new \App\Libraries\EmailService();
 
-    if (!$email->send()) {
-        log_message('error', 'Error al enviar correo de cancelación: ' . $email->printDebugger(['headers']));
+        $resultadoPaciente = $emailService->enviarCorreo(
+            $cita['correo'],
+            'Cita Cancelada - Clínica Florencia',
+            $mensaje
+        );
+
+        $resultadoHost = $emailService->enviarCorreo(
+            'xxkcronozsxx@gmail.com',
+            'Cita Cancelada - Clínica Florencia',
+            $mensaje
+        );
+
+        if ($resultadoPaciente != 202) {
+            log_message('error', 'Error al enviar correo de cancelación al paciente: Código ' . $resultadoPaciente);
+        }
+        if ($resultadoHost != 202) {
+            log_message('error', 'Error al enviar correo de cancelación al host: Código ' . $resultadoHost);
+        }
+
+    } elseif (preg_match('/^\+?\d{10,15}$/', $cita['correo'])) {
+        // Es un teléfono válido
+        $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
+        $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
     }
 
-    return redirect()->back()->with('mensaje', 'Cita cancelada correctamente y correo enviado.');
+    return redirect()->back()->with('mensaje', 'Cita cancelada correctamente y notificación enviada.');
 }
-
 }
