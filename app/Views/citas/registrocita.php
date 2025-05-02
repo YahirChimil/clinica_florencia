@@ -47,10 +47,10 @@
                 </div>
 
                 <div>
-    <label for="correo" class="block text-sm font-medium text-gray-700 mb-1">Correo electrónico o número de WhatsApp</label>
+    <label for="correo" class="block text-sm font-medium text-gray-700 mb-1"> número de WhatsApp</label>
     <input type="text" name="correo" id="correo" required
            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#09476e] focus:border-[#09476e]"
-           placeholder="ej. correo@ejemplo.com o 9512563171">
+           placeholder="ej.  9512563171">
 </div>
 
 
@@ -230,6 +230,16 @@ document.querySelector("form").addEventListener("submit", function(e) {
 </script>
 
 
+<script>
+    document.getElementById('correo').addEventListener('input', function (e) {
+        // Elimina todo lo que no sea dígito
+        this.value = this.value.replace(/\D/g, '');
 
+        // Opcional: Limita a 10 dígitos
+        if (this.value.length > 10) {
+            this.value = this.value.slice(0, 10);
+        }
+    });
+</script>
 
 <?= $this->endSection() ?>
