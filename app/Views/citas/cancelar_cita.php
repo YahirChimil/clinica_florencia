@@ -1,5 +1,3 @@
-<!-- app/Views/citas/cancelar_cita.php -->
-
 <?= $this->extend('plantilla') ?>
 <?= $this->section('contenido') ?>
 
@@ -14,9 +12,10 @@
 
     <form action="<?= site_url('citas/cancelar-cita') ?>" method="post" onsubmit="return confirmarCancelacion();">
         <div class="mb-4">
-            <label for="id" class="block mb-1 font-medium text-gray-700">ID de la cita:</label>
-            <input type="number" name="id" id="id" required
-                   class="w-full border px-3 py-2 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <label for="token" class="block mb-1 font-medium text-gray-700">Folio de cancelación:</label>
+            <input type="text" name="token" id="token" required
+                   class="w-full border px-3 py-2 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="Ingresa tu folio de cancelación">
         </div>
 
         <div class="text-center">
@@ -35,4 +34,3 @@
 </script>
 
 <?= $this->endSection() ?>
-

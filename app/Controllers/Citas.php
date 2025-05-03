@@ -66,6 +66,7 @@ class Citas extends BaseController
      */
     public function create()
     {
+        $token = bin2hex(random_bytes(5)); // Genera algo como "f3a91c87b2"
         $validation = \Config\Services::validation();
     
         $validation->setRules([
@@ -87,6 +88,7 @@ class Citas extends BaseController
             'hora'            => $this->request->getPost('hora'),
             'correo'          => $this->request->getPost('correo'),
             'motivo'          => $this->request->getPost('motivo') ?? null,
+            'token_cancelacion' => $token,
         ];
     
         $datosMedicos = [
@@ -107,7 +109,9 @@ class Citas extends BaseController
         $mensaje .= "Datos Médicos:\nEdad: {$datosMedicos['edad']}\nPeso: {$datosMedicos['peso']} kg\nSexo: {$datosMedicos['sexo']}\n";
         $mensaje .= "Tipo de sangre: {$datosMedicos['sangre']}\nAlergias: {$datosMedicos['alergias']}\n";
         $mensaje .= "Enfermedades crónicas: {$datosMedicos['enfermedad']}\n\nGracias por confiar en nosotros.";
-    
+        $mensaje .= "Para cancelar tu cita, usa este código: {$token}\n";
+        $mensaje .= "Ingresa el código en el siguiente enlace: " . base_url("citas/cancelar");
+
         // Detectar si es correo o teléfono
         if (filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) {
             // Enviar correo
@@ -225,63 +229,24 @@ if ($resultado != 202) {
 {
     return view('citas/cancelar_cita');
 }
-
 public function cancelar()
 {
-    $id = $this->request->getPost('id');
+    $token = $this->request->getPost('token');
     $citasModel = new CitasModel();
-    $cita = $citasModel->find($id);
+    $cita = $citasModel->where('token_cancelacion', $token)->first();
 
     if (!$cita) {
-        return redirect()->back()->with('mensaje', 'Cita no encontrada.');
+        return redirect()->back()->with('mensaje', 'Código inválido. No se encontró la cita.');
     }
 
-    if (empty($cita['correo'])) {
-        return redirect()->back()->with('mensaje', 'La cita no tiene un correo registrado. No se puede cancelar.');
-    }
+    $citasModel->delete($cita['id']);
 
-    // Cancelar (eliminar la cita)
-    $citasModel->delete($id);
-
-    // Mensaje de cancelación
-    $mensaje = "
-        <h3>Confirmación de Cancelación</h3>
-        <p><strong>Paciente:</strong> {$cita['nombre_paciente']}</p>
-        <p><strong>Fecha:</strong> {$cita['fecha']}</p>
-        <p><strong>Hora:</strong> {$cita['hora']}</p>
-        <p>La cita ha sido cancelada exitosamente.</p>
-    ";
-
-    // Detectar si es email o teléfono
-    if (filter_var($cita['correo'], FILTER_VALIDATE_EMAIL)) {
-        // Es un correo
-        $emailService = new \App\Libraries\EmailService();
-
-        $resultadoPaciente = $emailService->enviarCorreo(
-            $cita['correo'],
-            'Cita Cancelada - Clínica Florencia',
-            $mensaje
-        );
-
-        $resultadoHost = $emailService->enviarCorreo(
-            'xxkcronozsxx@gmail.com',
-            'Cita Cancelada - Clínica Florencia',
-            $mensaje
-        );
-
-        if ($resultadoPaciente != 202) {
-            log_message('error', 'Error al enviar correo de cancelación al paciente: Código ' . $resultadoPaciente);
-        }
-        if ($resultadoHost != 202) {
-            log_message('error', 'Error al enviar correo de cancelación al host: Código ' . $resultadoHost);
-        }
-
-    } elseif (preg_match('/^\+?\d{10,15}$/', $cita['correo'])) {
-        // Es un teléfono válido
-        $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
-        $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
-    }
+    $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
+    $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
 
     return redirect()->back()->with('mensaje', 'Cita cancelada correctamente y notificación enviada.');
 }
+
+
+
 }

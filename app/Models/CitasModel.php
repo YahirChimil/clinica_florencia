@@ -13,7 +13,7 @@ class CitasModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'nombre_paciente','fecha','hora','correo','motivo'];
+        'nombre_paciente','fecha','hora','correo','motivo','token_cancelacion'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;

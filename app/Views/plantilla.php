@@ -13,6 +13,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/dubrox/Multiple-Dates-Picker-for-jQuery-UI@master/jquery-ui.multidatespicker.js"></script>
     <script src="<?= base_url('js/datepicker-es.js') ?>"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
 </head>
 
 <body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col" x-data="{ open: false }">
@@ -21,13 +23,17 @@
     <nav class="bg-[#09476e] py-4 shadow">
         <div class="container mx-auto px-4 flex items-center justify-between">
             
-            <!-- LOGO + TITULO -->
-            <div class="flex items-center gap-3">
-                <a href="<?= base_url('/') ?>">
-                    <img src="<?= base_url('/src/logo_clinica2.png') ?>" alt="Logo" class="h-16">
-                </a>
-                <h1 class="text-white text-2xl font-bold tracking-wide hidden md:block">CLINICA FLORENCIA</h1>
-            </div>
+           <!-- Logo + Titulo -->
+<div class="flex items-center gap-3">
+    <a href="<?= base_url('/') ?>">
+        <img src="<?= base_url('/src/logo_clinica2.png') ?>" alt="Logo" class="h-16">
+    </a>
+    <h1 class="text-white text-2xl font-bold tracking-wide hidden md:block" style="font-family: 'Poppins', sans-serif;">CLINICA FLORENCIA</h1>
+</div>
+
+<!-- Titulo visible SOLO en móvil -->
+<h1 class="text-white text-xl font-bold tracking-wide block md:hidden text-center mt-2" style="font-family: 'Poppins', sans-serif;">CLINICA FLORENCIA</h1>
+
 
             <!-- Botón Hamburguesa en Móvil -->
             <div class="md:hidden">
