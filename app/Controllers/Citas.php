@@ -225,14 +225,18 @@ if ($resultado != 202) {
 {
     return view('citas/cancelar_cita');
 }
-
 public function cancelar()
 {
     $id = $this->request->getPost('id');
+    
+    // Agregar log para depurar
+    log_message('debug', 'ID recibido para cancelar la cita: ' . $id);
+
     $citasModel = new CitasModel();
     $cita = $citasModel->find($id);
 
     if (!$cita) {
+        log_message('error', 'No se encontró la cita con ID: ' . $id); // Log si no se encuentra la cita
         return redirect()->back()->with('mensaje', 'Cita no encontrada.');
     }
 
@@ -252,36 +256,20 @@ public function cancelar()
         <p>La cita ha sido cancelada exitosamente.</p>
     ";
 
-    // Detectar si es email o teléfono
-    if (filter_var($cita['correo'], FILTER_VALIDATE_EMAIL)) {
-        // Es un correo
-        $emailService = new \App\Libraries\EmailService();
-
-        $resultadoPaciente = $emailService->enviarCorreo(
-            $cita['correo'],
-            'Cita Cancelada - Clínica Florencia',
-            $mensaje
-        );
-
-        $resultadoHost = $emailService->enviarCorreo(
-            'xxkcronozsxx@gmail.com',
-            'Cita Cancelada - Clínica Florencia',
-            $mensaje
-        );
-
-        if ($resultadoPaciente != 202) {
-            log_message('error', 'Error al enviar correo de cancelación al paciente: Código ' . $resultadoPaciente);
-        }
-        if ($resultadoHost != 202) {
-            log_message('error', 'Error al enviar correo de cancelación al host: Código ' . $resultadoHost);
-        }
-
-    } elseif (preg_match('/^\+?\d{10,15}$/', $cita['correo'])) {
+    // Si el campo 'correo' contiene un número de teléfono, validamos que sea un número válido
+    if (preg_match('/^\+?\d{10,15}$/', $cita['correo'])) {
         // Es un teléfono válido
         $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
         $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
+    } else {
+        // Aquí puedes poner un log o acción en caso de que el campo 'correo' no sea un teléfono válido
+        log_message('error', 'El número de teléfono no es válido: ' . $cita['correo']);
+        return redirect()->back()->with('mensaje', 'El número de teléfono no es válido.');
     }
 
     return redirect()->back()->with('mensaje', 'Cita cancelada correctamente y notificación enviada.');
 }
+
+
+
 }
