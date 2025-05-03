@@ -231,56 +231,19 @@ if ($resultado != 202) {
 }
 public function cancelar()
 {
-
     $token = $this->request->getPost('token');
-
-    $id = $this->request->getPost('id');
-    
-    // Agregar log para depurar
-    log_message('debug', 'ID recibido para cancelar la cita: ' . $id);
-
     $citasModel = new CitasModel();
     $cita = $citasModel->where('token_cancelacion', $token)->first();
 
     if (!$cita) {
-
         return redirect()->back()->with('mensaje', 'Código inválido. No se encontró la cita.');
-
     }
 
     $citasModel->delete($cita['id']);
 
-
     $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
     $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
 
-    // Cancelar (eliminar la cita)
-    $citasModel->delete($id);
-
-    // Mensaje de cancelación
-    $mensaje = "
-        <h3>Confirmación de Cancelación</h3>
-        <p><strong>Paciente:</strong> {$cita['nombre_paciente']}</p>
-        <p><strong>Fecha:</strong> {$cita['fecha']}</p>
-        <p><strong>Hora:</strong> {$cita['hora']}</p>
-        <p>La cita ha sido cancelada exitosamente.</p>
-    ";
-
-    // Si el campo 'correo' contiene un número de teléfono, validamos que sea un número válido
-    if (preg_match('/^\+?\d{10,15}$/', $cita['correo'])) {
-        // Es un teléfono válido
-        $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
-        $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
-    } else {
-        // Aquí puedes poner un log o acción en caso de que el campo 'correo' no sea un teléfono válido
-        log_message('error', 'El número de teléfono no es válido: ' . $cita['correo']);
-        return redirect()->back()->with('mensaje', 'El número de teléfono no es válido.');
-    }
-
-
     return redirect()->back()->with('mensaje', 'Cita cancelada correctamente y notificación enviada.');
 }
-
-
-
 }
