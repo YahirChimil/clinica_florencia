@@ -66,6 +66,7 @@ class Citas extends BaseController
      */
     public function create()
     {
+        $token = bin2hex(random_bytes(5)); // Genera algo como "f3a91c87b2"
         $validation = \Config\Services::validation();
     
         $validation->setRules([
@@ -87,6 +88,7 @@ class Citas extends BaseController
             'hora'            => $this->request->getPost('hora'),
             'correo'          => $this->request->getPost('correo'),
             'motivo'          => $this->request->getPost('motivo') ?? null,
+            'token_cancelacion' => $token,
         ];
     
         $datosMedicos = [
@@ -107,7 +109,9 @@ class Citas extends BaseController
         $mensaje .= "Datos Médicos:\nEdad: {$datosMedicos['edad']}\nPeso: {$datosMedicos['peso']} kg\nSexo: {$datosMedicos['sexo']}\n";
         $mensaje .= "Tipo de sangre: {$datosMedicos['sangre']}\nAlergias: {$datosMedicos['alergias']}\n";
         $mensaje .= "Enfermedades crónicas: {$datosMedicos['enfermedad']}\n\nGracias por confiar en nosotros.";
-    
+        $mensaje .= "Para cancelar tu cita, usa este código: {$token}\n";
+        $mensaje .= "Ingresa el código en el siguiente enlace: " . base_url("citas/cancelar");
+
         // Detectar si es correo o teléfono
         if (filter_var($data['correo'], FILTER_VALIDATE_EMAIL)) {
             // Enviar correo
@@ -227,22 +231,28 @@ if ($resultado != 202) {
 }
 public function cancelar()
 {
+
+    $token = $this->request->getPost('token');
+
     $id = $this->request->getPost('id');
     
     // Agregar log para depurar
     log_message('debug', 'ID recibido para cancelar la cita: ' . $id);
 
     $citasModel = new CitasModel();
-    $cita = $citasModel->find($id);
+    $cita = $citasModel->where('token_cancelacion', $token)->first();
 
     if (!$cita) {
-        log_message('error', 'No se encontró la cita con ID: ' . $id); // Log si no se encuentra la cita
-        return redirect()->back()->with('mensaje', 'Cita no encontrada.');
+
+        return redirect()->back()->with('mensaje', 'Código inválido. No se encontró la cita.');
+
     }
 
-    if (empty($cita['correo'])) {
-        return redirect()->back()->with('mensaje', 'La cita no tiene un correo registrado. No se puede cancelar.');
-    }
+    $citasModel->delete($cita['id']);
+
+
+    $mensajeWhatsapp = "Hola {$cita['nombre_paciente']}, tu cita programada para el día {$cita['fecha']} a las {$cita['hora']} ha sido cancelada exitosamente. Clínica Florencia.";
+    $this->enviarWhatsapp($cita['correo'], $mensajeWhatsapp);
 
     // Cancelar (eliminar la cita)
     $citasModel->delete($id);
@@ -266,6 +276,7 @@ public function cancelar()
         log_message('error', 'El número de teléfono no es válido: ' . $cita['correo']);
         return redirect()->back()->with('mensaje', 'El número de teléfono no es válido.');
     }
+
 
     return redirect()->back()->with('mensaje', 'Cita cancelada correctamente y notificación enviada.');
 }
