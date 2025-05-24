@@ -21,7 +21,7 @@ $routes->get('citas/new', 'Citas::new');
 $routes->post('citas', 'Citas::create');
 
 $routes->get('citas/horas-disponibles', 'Citas::horasDisponibles');
-$routes->get('citas/horas-disponibles', 'Citas::horasDisponibles');
+
 $routes->get('citas/cancelar-cita', 'Citas::formCancelarCita');
 $routes->post('citas/cancelar-cita', 'Citas::cancelar');
 $routes->post('citas/guardar-dias-no-laborables', 'DiasNoLaborales::guardarDiasNoLaborables');

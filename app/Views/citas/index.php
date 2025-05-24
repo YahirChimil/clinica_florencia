@@ -72,6 +72,12 @@
   </table>
 </div>
 <script>
+    setInterval(function() {
+        location.reload();
+    }, 30000); // 30000 milisegundos = 30 segundos
+</script>
+
+<script>
 $(function() {
     
 

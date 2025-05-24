@@ -15,7 +15,8 @@
     </div>
     <?php endif; ?>
 
-    <form action="<?= base_url('citas') ?>" method="post">
+    <form id="formCita" action="<?= base_url('citas') ?>" method="post">
+
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Columna izquierda: formulario de registro de cita -->
             <div class="md:w-1/2 space-y-5">
@@ -113,13 +114,26 @@
         </div>
 
         <div class="text-center mt-8">
-            <button type="submit"
-                    class="bg-[#09476e] hover:bg-[#0c3c4b] text-white font-semibold px-6 py-2 rounded-md transition">
-                Registrar Cita
-            </button>
+        <button type="submit" id="btnSubmit"
+        class="bg-[#09476e] hover:bg-[#0c3c4b] text-white font-semibold px-6 py-2 rounded-md transition">
+    Registrar Cita
+</button>
+
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("formCita");
+    const submitBtn = document.getElementById("btnSubmit");
+
+    form.addEventListener("submit", function () {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Enviando...";
+    });
+});
+</script>
 
 
 
